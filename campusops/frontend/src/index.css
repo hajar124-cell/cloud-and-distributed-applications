@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+  html { font-family: 'Inter', system-ui, sans-serif; }
+  body { @apply bg-gray-50 text-gray-900 antialiased; margin: 0; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { @apply bg-gray-100; }
+  ::-webkit-scrollbar-thumb { @apply bg-euromed-navy/30 rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-euromed-navy/50; }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-euromed-navy text-white px-4 py-2 rounded-lg font-medium
+           hover:bg-euromed-navy-light transition-all duration-200
+           focus:outline-none focus:ring-2 focus:ring-euromed-navy/50 focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply bg-euromed-gold text-euromed-navy-dark px-4 py-2 rounded-lg font-medium
+           hover:bg-euromed-gold-light transition-all duration-200
+           focus:outline-none focus:ring-2 focus:ring-euromed-gold/50 focus:ring-offset-2;
+  }
+  .btn-ghost {
+    @apply text-euromed-navy px-4 py-2 rounded-lg font-medium
+           hover:bg-euromed-navy/10 transition-all duration-200;
+  }
+  .btn-danger {
+    @apply bg-red-600 text-white px-4 py-2 rounded-lg font-medium
+           hover:bg-red-700 transition-all duration-200;
+  }
+  .card {
+    @apply bg-white rounded-xl shadow-card border border-gray-100 overflow-hidden;
+  }
+  .card-hover {
+    @apply card hover:shadow-card-hover transition-all duration-300 cursor-pointer;
+  }
+  .input-field {
+    @apply w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm
+           focus:outline-none focus:ring-2 focus:ring-euromed-navy/50 focus:border-euromed-navy
+           transition-all duration-200 bg-white;
+  }
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  .badge-blue { @apply badge bg-blue-100 text-blue-800; }
+  .badge-green { @apply badge bg-green-100 text-green-800; }
+  .badge-red { @apply badge bg-red-100 text-red-800; }
+  .badge-yellow { @apply badge bg-yellow-100 text-yellow-800; }
+  .badge-gray { @apply badge bg-gray-100 text-gray-700; }
+  .badge-gold { @apply badge bg-accent-100 text-accent-700; }
+  .stat-card {
+    @apply card p-6 flex items-start gap-4;
+  }
+  .page-header {
+    @apply mb-6;
+  }
+  .page-title {
+    @apply text-2xl font-bold text-euromed-navy;
+  }
+  .page-subtitle {
+    @apply text-sm text-gray-500 mt-1;
+  }
+  .table-wrapper {
+    @apply overflow-x-auto rounded-xl border border-gray-100;
+  }
+  .table-base {
+    @apply w-full text-sm text-left;
+  }
+  .table-base thead { @apply bg-euromed-navy text-white; }
+  .table-base thead th { @apply px-4 py-3 font-medium; }
+  .table-base tbody tr { @apply border-b border-gray-50 hover:bg-euromed-cream/50 transition-colors; }
+  .table-base tbody td { @apply px-4 py-3 text-gray-700; }
+}
+
+@layer utilities {
+  .text-gradient { @apply bg-clip-text text-transparent bg-gradient-euromed; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .animate-fade-in { animation: fadeIn 0.3s ease-in-out; }
+  .animate-slide-up { animation: slideUp 0.3s ease-out; }
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
