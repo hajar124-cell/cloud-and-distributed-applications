@@ -1,0 +1,243 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String    @id @default(uuid())
+  email          String    @unique
+  password       String
+  firstName      String
+  lastName       String
+  role           String    // ADMIN | SCOLARITE | ENSEIGNANT | ETUDIANT
+  phone          String?
+  avatar         String?
+  isActive       Boolean   @default(true)
+  telegramChatId   String?   @unique
+  telegramOtp      String?
+  otpExpiresAt     DateTime?
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  teacherSessions  Session[]       @relation("TeacherSessions")
+  studentAbsences  Absence[]       @relation("StudentAbsences")
+  studentPayments  Payment[]       @relation("StudentPayments")
+  studentProgress  Progress[]      @relation("StudentProgress")
+  notifications    Notification[]
+  parentOf         Student[]       @relation("ParentStudent")
+  student          Student?
+  refreshTokens    RefreshToken[]
+
+  @@map("users")
+}
+
+model Student {
+  id        String  @id @default(uuid())
+  userId    String  @unique
+  studentId String  @unique
+  groupId   String?
+  parentId  String?
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group  Group? @relation(fields: [groupId], references: [id])
+  parent User?  @relation("ParentStudent", fields: [parentId], references: [id])
+
+  @@map("students")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model Group {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  level     String
+  filiere   String
+  capacity  Int      @default(30)
+  createdAt DateTime @default(now())
+
+  students  Student[]
+  sessions  Session[]
+  absences  Absence[]
+  progress  Progress[]
+
+  @@map("groups")
+}
+
+model Module {
+  id          String  @id @default(uuid())
+  code        String  @unique
+  name        String
+  description String?
+  credits     Int     @default(3)
+  volumeHours Int     @default(30)
+  semester    Int
+  isActive    Boolean @default(true)
+
+  sessions  Session[]
+  progress  Progress[]
+  chapters  Chapter[]
+
+  @@map("modules")
+}
+
+model Chapter {
+  id          String  @id @default(uuid())
+  moduleId    String
+  title       String
+  order       Int
+  description String?
+
+  module Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@map("chapters")
+}
+
+model Room {
+  id       String @id @default(uuid())
+  name     String @unique
+  capacity Int
+  building String?
+  type     String @default("Amphi")
+
+  sessions Session[]
+
+  @@map("rooms")
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  moduleId  String
+  teacherId String
+  groupId   String
+  roomId    String?
+  date      DateTime
+  startTime String
+  endTime   String
+  type      String   @default("CM")
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  module   Module    @relation(fields: [moduleId], references: [id])
+  teacher  User      @relation("TeacherSessions", fields: [teacherId], references: [id])
+  group    Group     @relation(fields: [groupId], references: [id])
+  room     Room?     @relation(fields: [roomId], references: [id])
+  absences Absence[]
+
+  @@map("sessions")
+}
+
+model Absence {
+  id            String    @id @default(uuid())
+  studentId     String
+  sessionId     String
+  groupId       String
+  status        String    @default("ABSENT") // PRESENT | ABSENT | RETARD
+  justification String?
+  justifiedAt   DateTime?
+  recordedAt    DateTime  @default(now())
+  recordedBy    String?
+
+  student User    @relation("StudentAbsences", fields: [studentId], references: [id])
+  session Session @relation(fields: [sessionId], references: [id])
+  group   Group   @relation(fields: [groupId], references: [id])
+
+  @@unique([studentId, sessionId])
+  @@map("absences")
+}
+
+model Payment {
+  id        String    @id @default(uuid())
+  studentId String
+  label     String
+  amount    Float
+  dueDate   DateTime
+  paidAt    DateTime?
+  status    String    @default("IMPAYE") // PAYE | PARTIEL | IMPAYE
+  method    String?
+  reference String?
+  notes     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  student User @relation("StudentPayments", fields: [studentId], references: [id])
+
+  @@map("payments")
+}
+
+model Progress {
+  id            String   @id @default(uuid())
+  moduleId      String
+  groupId       String
+  studentId     String?
+  chaptersTotal Int
+  chaptersDone  Int      @default(0)
+  percentage    Float    @default(0)
+  lastUpdated   DateTime @default(now())
+  notes         String?
+
+  module  Module @relation(fields: [moduleId], references: [id])
+  group   Group  @relation(fields: [groupId], references: [id])
+  student User?  @relation("StudentProgress", fields: [studentId], references: [id])
+
+  @@index([moduleId, groupId])
+  @@map("progress")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String   // PLANNING | ABSENCE | PAIEMENT | SYSTEME | EMAIL_ENTRANT
+  title     String
+  body      String
+  isRead    Boolean  @default(false)
+  metadata  String?  // JSON stringifié
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model EmailLog {
+  id          String    @id @default(uuid())
+  messageId   String?   @unique
+  fromAddress String
+  toAddress   String?
+  subject     String
+  preview     String?
+  body        String?
+  direction   String    @default("INBOUND")
+  processedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@map("email_logs")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String
+  resource  String
+  details   String?  // JSON stringifié
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@map("audit_logs")
+}
